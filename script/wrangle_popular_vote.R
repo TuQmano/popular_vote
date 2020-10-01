@@ -156,7 +156,9 @@ turnout_rename <- full_turnout_data %>%
 
 library(gt)
 
-rbind(elec2000, elec2012, elec2016) %>% 
+datos_tablas <- rbind(elec2000, elec2012, elec2016) %>% 
+  mutate(across(.cols = c(Diferencia, Dem, Rep), .fns = ~ str_remove_all(. ,pattern =  "%"))) %>% 
+  mutate(across(.cols = c(Diferencia, Dem, Rep), ~ as.numeric(.))) %>% 
   mutate(Estado = case_when(
     Estado == "Carolina del Norte" ~ "North Carolina", 
     Estado == "Nuevo Mexico" ~ "New Mexico", 
@@ -167,22 +169,44 @@ rbind(elec2000, elec2012, elec2016) %>%
   left_join(turnout_rename) %>% 
   mutate(turnout = round(Turnout - turnout_mean,1), 
          year = eleccion) %>% 
-  select(1:2, 8, eleccion, year) %>% 
+  select(1:2, 8, eleccion, year, turnout_mean) %>% 
   arrange(year, desc(turnout)) %>% 
   group_by(eleccion) %>% 
-  nest() %>% 
+  nest()  
+  
+
+Tablas <- datos_tablas %>% 
   mutate(tabla = map(data, ~ gt::gt(.) %>% 
-                       tab_header(glue::glue("Elección Presidencial")) %>%
+                       tab_header(title = glue::glue("Elección Presidencial {eleccion}")) %>% 
+                       cols_label(turnout = "Participación", 
+                                  Diferencia = "(Dem - Rep)") %>%
+                       tab_spanner(
+                         label = "Distancia",
+                         columns = vars(Diferencia)) %>%
                        data_color(
     columns = vars(turnout),
     colors = scales::col_numeric(
       palette = c(
         "red",  "blue"),
-      domain = c(-14, 14)))
-    )) -> Tablas
+      domain = c(-11, 15)))  %>%
+      cols_hide(
+        columns = vars(year, turnout_mean)
+      )  %>%
+      tab_footnote(
+        footnote = "Distanica del promedio inter estadual",
+        locations = cells_column_labels(
+          columns = vars(turnout))
+      ) %>%
+      tab_footnote(
+        footnote = "Distanica del promedio inter estadual",
+        locations = cells_column_labels(
+          columns = vars(turnout))
+      )
+    )) 
 
-Tablas$tabla
-
+Tablas$tabla[1]
+Tablas$tabla[2]
+Tablas$tabla[3]
 unique(turnout_rename$Estado)
 
 #### TABLAS GT
