@@ -5,6 +5,7 @@ library(tidyverse) # Easily Install and Load the 'Tidyverse', CRAN v1.3.0
 library(geofacet) # 'ggplot2' Faceting Utilities for Geographical Data, CRAN v0.2.0
 library(readxl) # Read Excel Files, CRAN v1.3.1
 library(ggtext)
+library(gt)
 
 # load data ####
 presidential_year <- seq(from = 1980 , to = 2016, by = 4)
@@ -114,7 +115,15 @@ ggplot(turnout2016) +
        subtitle = "<span style='color:blue'>Promedio Historico</span> - Promedio 2016 - <span style='color:red'> Participación 2016</span> - _FiveThirtyEight_") +
   theme(plot.subtitle = element_markdown())
 
-####3 ELECCIONES CERRADAS
+
+#dev.off()
+#
+#ggsave(plot = last_plot(), "plots/turnount_2016_facet.png", width = 30, height = 18, units = "cm")
+
+
+
+
+#### 3 ELECCIONES CERRADAS
 
 elec2000 <- tibble::tribble(
           ~Estado, ~Diferencia,    ~Dem,    ~Rep,
@@ -173,8 +182,6 @@ turnout_rename <- full_turnout_data %>%
   rename(eleccion = Year, 
          Estado = STATE) 
 
-library(gt)
-
 datos_tablas <- rbind(elec2000, elec2012, elec2016) %>% 
   mutate(across(.cols = c(Diferencia, Dem, Rep), .fns = ~ str_remove_all(. ,pattern =  "%"))) %>% 
   mutate(across(.cols = c(Diferencia, Dem, Rep), ~ as.numeric(.))) %>% 
@@ -224,11 +231,8 @@ Tablas <- datos_tablas %>%
 Tablas$tabla[[1]]# %>%  gtsave(filename = "2000.rtf")
 Tablas$tabla[[2]]# %>% gtsave(filename = "2012.rtf")
 Tablas$tabla[[3]]# %>% gtsave(filename = "2016.rtf")
-unique(turnout_rename$Estado)
 
-#### TABLAS GT
-elec2000 %>% 
-  gt::gt()
+
 
 
 
