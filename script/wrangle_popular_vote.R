@@ -4,6 +4,7 @@
 library(tidyverse) # Easily Install and Load the 'Tidyverse', CRAN v1.3.0
 library(geofacet) # 'ggplot2' Faceting Utilities for Geographical Data, CRAN v0.2.0
 library(readxl) # Read Excel Files, CRAN v1.3.1
+library(ggtext)
 
 # load data ####
 presidential_year <- seq(from = 1980 , to = 2016, by = 4)
@@ -29,7 +30,9 @@ national <-  full_turnout_data %>%
 polls_results <- read_delim("data/votes_polls.csv", delim = ";") %>%
   mutate(compete = clinton_polls - trump_polls,
          dif = cliton_votes - trump_votes) %>%
-  arrange(desc(compete)) 
+  arrange(desc(compete)) %>%
+  rename(name = state) %>% 
+  print(n = Inf)
 
 
 ## WRANGLE DATA ####
@@ -41,7 +44,11 @@ codes <- us_state_grid1 %>%
 
 turnout_code <- turnout %>% 
   rename(name = STATE) %>% 
-  left_join(codes, by = "name") 
+  mutate(name = case_when(name == 'District of Columbia' ~ "DC", TRUE ~ name)) %>% 
+  left_join(codes, by = "name") %>% 
+  left_join(polls_results) %>% 
+  mutate(code = ifelse(is.na(name), "DC", name)) %>% 
+  print()
 
 
 
@@ -67,9 +74,9 @@ ggplot(turnout_code) +
 
 
 
-dev.off()
-
-ggsave(plot = last_plot(), "plots/turnount_ts.png", width = 30, height = 18, units = "cm")
+#dev.off()
+#
+#ggsave(plot = last_plot(), "plots/turnount_ts.png", width = 30, height = 18, units = "cm")
 
 
 
@@ -79,21 +86,33 @@ turnout2016 <- turnout %>%
   group_by(STATE) %>% 
   mutate(mean_turnout = mean(Turnout, na.rm = T), 
          dif_mean = Turnout - mean_turnout) %>% 
-  filter(Year == 2016) %>% 
-  arrange(desc(dif_mean)) 
+  filter(Year == 2016) %>%
+  rename(name = STATE) %>% 
+  mutate(name = case_when(name == 'District of Columbia' ~ "DC", TRUE ~ name)) %>% 
+  left_join(polls_results) %>% 
+# mutate(code = ifelse(is.na(name), "DC", name)) %>% 
+  arrange(desc(dif_mean)) %>% 
+  mutate(competitivo = case_when(
+   abs(compete) < 5 ~ "FiveThirtyEight < 5 PUNTOS", TRUE ~ "FiveThirtyEight > 5 PUNTOS" 
+  )) %>% 
+   print()
 
 ggplot(turnout2016) +
+  facet_wrap(~competitivo) +
   geom_col(aes(mean_turnout, 
-               fct_reorder(as.factor(STATE), mean_turnout)), 
+               fct_reorder(as.factor(name), mean_turnout)), 
            fill = "blue", color = "transparent",
            alpha = .2) +
   geom_point(aes(Turnout, 
-               fct_reorder(as.factor(STATE), mean_turnout)), 
+               fct_reorder(as.factor(name), mean_turnout)), 
            color = "red") +
   geom_vline(xintercept = national %>% 
                filter(Year == 2016) %>% 
                pull(Turnout)) +
-  ggthemes::theme_fivethirtyeight()
+  ggthemes::theme_fivethirtyeight()  +
+  labs(title = "Participación Electoral por Estado", 
+       subtitle = "<span style='color:blue'>Promedio Historico</span> - Promedio 2016 - <span style='color:red'> Participación 2016</span> - _FiveThirtyEight_") +
+  theme(plot.subtitle = element_markdown())
 
 ####3 ELECCIONES CERRADAS
 
@@ -179,10 +198,7 @@ Tablas <- datos_tablas %>%
   mutate(tabla = map(data, ~ gt::gt(.) %>% 
                        tab_header(title = glue::glue("Elección Presidencial {eleccion}")) %>% 
                        cols_label(turnout = "Participación", 
-                                  Diferencia = "(Dem - Rep)") %>%
-                       tab_spanner(
-                         label = "Distancia",
-                         columns = vars(Diferencia)) %>%
+                                  Diferencia = "|Dem - Rep|")  %>%
                        data_color(
     columns = vars(turnout),
     colors = scales::col_numeric(
@@ -193,20 +209,21 @@ Tablas <- datos_tablas %>%
         columns = vars(year, turnout_mean)
       )  %>%
       tab_footnote(
-        footnote = "Distanica del promedio inter estadual",
+        footnote = "Distanica del promedio de participación inter estadual (puntos porcentuales)",
         locations = cells_column_labels(
           columns = vars(turnout))
       ) %>%
       tab_footnote(
-        footnote = "Distanica del promedio inter estadual",
+        footnote = "Diferencia de votos en valor absoluto (puntos porcentuales)",
         locations = cells_column_labels(
-          columns = vars(turnout))
-      )
+          columns = vars(Diferencia)) 
+      )  %>%
+      cols_align(align = "center", columns = c("Diferencia", "turnout"))
     )) 
 
-Tablas$tabla[1]
-Tablas$tabla[2]
-Tablas$tabla[3]
+Tablas$tabla[[1]]# %>%  gtsave(filename = "2000.rtf")
+Tablas$tabla[[2]]# %>% gtsave(filename = "2012.rtf")
+Tablas$tabla[[3]]# %>% gtsave(filename = "2016.rtf")
 unique(turnout_rename$Estado)
 
 #### TABLAS GT
