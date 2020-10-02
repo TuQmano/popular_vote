@@ -1,11 +1,19 @@
+#
+#
+#   Voto Popular vs Colegio Electoral
+#   Por Javier Caches y JP Ruiz Nicolini
+#   1/10/2020
+#
+
+
 
 
 # Load pkgs
 library(tidyverse) # Easily Install and Load the 'Tidyverse', CRAN v1.3.0
 library(geofacet) # 'ggplot2' Faceting Utilities for Geographical Data, CRAN v0.2.0
 library(readxl) # Read Excel Files, CRAN v1.3.1
-library(ggtext)
-library(gt)
+library(ggtext) # Improved Text Rendering Support for 'ggplot2', CRAN v0.1.0
+library(gt) # Easily Create Presentation-Ready Display Tables, CRAN v0.2.2
 
 # load data ####
 presidential_year <- seq(from = 1980 , to = 2016, by = 4)
@@ -13,17 +21,6 @@ presidential_year <- seq(from = 1980 , to = 2016, by = 4)
 # TURNOUT 1980 - 2016
 full_turnout_data <- read_delim("data/TurnoutLong.csv", delim = ";") %>% 
   filter(Year %in% presidential_year)
-
-turnout <- full_turnout_data %>% 
-  filter(! STATE %in% c("United States (Excl, Louisiana)", 
-                     "United States"), 
-         X4 == "VEP") %>% 
-  select(-X4)
-
-national <-  full_turnout_data %>% 
-  filter( STATE == "United States", 
-         X4 == "VEP") %>% 
-  select(-X4)
 
 
 # 2016 POLLS and RESULTS
@@ -36,7 +33,21 @@ polls_results <- read_delim("data/votes_polls.csv", delim = ";") %>%
   print(n = Inf)
 
 
+
+
 ## WRANGLE DATA ####
+
+turnout <- full_turnout_data %>% 
+  filter(! STATE %in% c("United States (Excl, Louisiana)", 
+                     "United States"), 
+         X4 == "VEP") %>% 
+  select(-X4)
+
+national <-  full_turnout_data %>% 
+  filter( STATE == "United States", 
+         X4 == "VEP") %>% 
+  select(-X4)
+
 
 # Add State Code
 
@@ -51,12 +62,10 @@ turnout_code <- turnout %>%
   mutate(code = ifelse(is.na(name), "DC", name)) %>% 
   print()
 
-
-
-
 ### PLOTS ###
 
-# Turnout  
+# Turnout TS States geofacet 
+
 ggplot(turnout_code) + 
   geom_point(aes(Year, Turnout), color = 'red') + # State turnout
   geom_line(aes(Year, Turnout), data = national, 
@@ -81,7 +90,7 @@ ggplot(turnout_code) +
 
 
 
-
+# 2016 turnout (vs promedio nacional y turnout historico por estado)
 
 turnout2016 <- turnout %>% 
   group_by(STATE) %>% 
@@ -123,7 +132,7 @@ ggplot(turnout2016) +
 
 
 
-#### 3 ELECCIONES CERRADAS
+#### Analisis de casos (años) 3 ELECCIONES CERRADAS
 
 elec2000 <- tibble::tribble(
           ~Estado, ~Diferencia,    ~Dem,    ~Rep,
@@ -172,7 +181,7 @@ elec2016 <- tibble::tribble(
   mutate(eleccion = 2016)
 
 
-### ADD TURNOUT
+### TURNOUT - 3 CASOS (TABLAS)
 
 turnout_rename <- full_turnout_data %>% 
   filter(X4 == "VEP") %>% 
@@ -216,7 +225,7 @@ Tablas <- datos_tablas %>%
         columns = vars(year, turnout_mean)
       )  %>%
       tab_footnote(
-        footnote = "Distanica del promedio de participación inter estadual (puntos porcentuales)",
+        footnote = "Distancia del promedio de participación inter estadual (puntos porcentuales)",
         locations = cells_column_labels(
           columns = vars(turnout))
       ) %>%
@@ -231,6 +240,7 @@ Tablas <- datos_tablas %>%
 Tablas$tabla[[1]]# %>%  gtsave(filename = "2000.rtf")
 Tablas$tabla[[2]]# %>% gtsave(filename = "2012.rtf")
 Tablas$tabla[[3]]# %>% gtsave(filename = "2016.rtf")
+
 
 
 
