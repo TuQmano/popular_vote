@@ -121,7 +121,8 @@ ggplot(turnout2016) +
                pull(Turnout)) +
   ggthemes::theme_fivethirtyeight()  +
   labs(title = "Participación Electoral por Estado", 
-       subtitle = "<span style='color:blue'>Promedio Histórico</span> - Promedio 2016 - <span style='color:red'> Participación 2016</span> - _FiveThirtyEight_") +
+       subtitle = "<span style='color:blue'>Promedio Histórico</span> - Promedio 2016 - <span style='color:red'> Participación 2016</span> - _FiveThirtyEight_", 
+       caption = "@TuQmano con datos de United States Electoral Project - http://www.electproject.org/ y FiveThirtyEight - https://fivethirtyeight.com/") +
   theme(plot.subtitle = element_markdown())
 
 
