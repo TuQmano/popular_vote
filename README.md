@@ -1,6 +1,6 @@
 # Voto Popular  vs  Colegio Electoral en EEUU
 
-_(Nota con J.Caches a partir de un [trabajo en proceso previo](https://www.researchgate.net/publication/319332286))_. 
+_(Nota con J.Caches para [**OpinArg**](https://opinarg.com/colegio-electoral-vs-voto-popular-como-interpretar-los-resultados-electorales-de-estados-unidos.html) - a partir de un [trabajo en proceso previo](https://www.researchgate.net/publication/319332286))_. 
 
 
 #### [CODIGO](https://github.com/TuQmano/popular_vote/blob/master/script/wrangle_popular_vote.R)
