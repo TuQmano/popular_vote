@@ -5,9 +5,9 @@ _(Nota con J.Caches para [**OpinArg**](https://opinarg.com/colegio-electoral-vs-
 
 #### [CODIGO](https://github.com/TuQmano/popular_vote/blob/master/script/wrangle_popular_vote.R)
 
-
-
 #### [DATOS](https://github.com/TuQmano/popular_vote/tree/master/data) 
+
+#### [SLIDES](https://tuqmano.com/talks/popular_vote) - Encuentro UADE (3 Nov 2020)
 
 **FUENTES**
 
