@@ -3,6 +3,8 @@
 #   Voto Popular vs Colegio Electoral
 #   Por Javier Caches y JP Ruiz Nicolini
 #   1/10/2020
+#   
+#   UPDATE: 7/11/2020
 #
 
 
@@ -33,7 +35,8 @@ polls_results <- read_delim("data/votes_polls.csv", delim = ";") %>%
   print(n = Inf)
 
 
-
+as_tibble(polls_results$name) %>% 
+  print(n = Inf)
 
 ## WRANGLE DATA ####
 
@@ -100,12 +103,12 @@ turnout2016 <- turnout %>%
   rename(name = STATE) %>% 
   mutate(name = case_when(name == 'District of Columbia' ~ "DC", TRUE ~ name)) %>% 
   left_join(polls_results) %>% 
-# mutate(code = ifelse(is.na(name), "DC", name)) %>% 
+  # mutate(code = ifelse(is.na(name), "DC", name)) %>% 
   arrange(desc(dif_mean)) %>% 
   mutate(competitivo = case_when(
-   abs(compete) < 5 ~ "FiveThirtyEight < 5 PUNTOS", TRUE ~ "FiveThirtyEight > 5 PUNTOS" 
+    abs(compete) < 5 ~ "FiveThirtyEight < 5 PUNTOS", TRUE ~ "FiveThirtyEight > 5 PUNTOS" 
   )) %>% 
-   print()
+  print()
 
 ggplot(turnout2016) +
   facet_wrap(~competitivo) +
@@ -114,8 +117,8 @@ ggplot(turnout2016) +
            fill = "blue", color = "transparent",
            alpha = .2) +
   geom_point(aes(Turnout, 
-               fct_reorder(as.factor(name), mean_turnout)), 
-           color = "red") +
+                 fct_reorder(as.factor(name), mean_turnout)), 
+             color = "red") +
   geom_vline(xintercept = national %>% 
                filter(Year == 2016) %>% 
                pull(Turnout)) +
@@ -124,6 +127,7 @@ ggplot(turnout2016) +
        subtitle = "<span style='color:blue'>Promedio Histórico</span> - Promedio 2016 - <span style='color:red'> Participación 2016</span> - _FiveThirtyEight_", 
        caption = "@TuQmano con datos de United States Electoral Project - http://www.electproject.org/ y FiveThirtyEight - https://fivethirtyeight.com/") +
   theme(plot.subtitle = element_markdown())
+
 
 
 #dev.off()
@@ -244,6 +248,125 @@ Tablas$tabla[[3]]# %>% gtsave(filename = "2016.rtf")
 
 
 
+##### 2020
+##### 
+
+elec2020 <- tibble::tribble(
+             ~name, ~turnount, ~compete,
+         "Alabama",      0.62,       0L,
+          "Alaska",       0.7,       0L,
+         "Arizona",      0.66,       1L,
+        "Arkansas",      0.56,       0L,
+      "California",      0.63,       0L,
+        "Colorado",      0.77,       0L,
+     "Connecticut",      0.71,       0L,
+        "Delaware",      0.71,       0L,
+              "DC",      0.65,       0L,
+         "Florida",      0.72,       1L,
+         "Georgia",      0.68,       1L,
+          "Hawaii",      0.58,       0L,
+           "Idaho",      0.68,       0L,
+        "Illinois",      0.68,       0L,
+         "Indiana",      0.61,       0L,
+            "Iowa",      0.79,       1L,
+          "Kansas",      0.64,       0L,
+        "Kentucky",      0.65,       0L,
+       "Louisiana",      0.65,       0L,
+           "Maine",      0.79,       1L,
+        "Maryland",      0.72,       0L,
+   "Massachusetts",      0.73,       0L,
+        "Michigan",      0.74,       0L,
+       "Minnesota",      0.79,       0L,
+     "Mississippi",       0.6,       0L,
+        "Missouri",      0.67,       0L,
+         "Montana",      0.72,       0L,
+        "Nebraska",      0.68,       0L,
+          "Nevada",      0.64,       0L,
+   "New Hampshire",      0.75,       0L,
+      "New Jersey",      0.73,       0L,
+      "New Mexico",      0.61,       0L,
+        "New York",      0.65,       0L,
+  "North Carolina",      0.74,       1L,
+    "North Dakota",      0.65,       0L,
+            "Ohio",       0.7,       1L,
+        "Oklahoma",      0.55,       0L,
+          "Oregon",      0.75,       0L,
+    "Pennsylvania",      0.72,       1L,
+    "Rhode Island",      0.65,       0L,
+  "South Carolina",      0.64,       0L,
+    "South Dakota",      0.66,       0L,
+       "Tennessee",       0.6,       0L,
+           "Texas",      0.61,       0L,
+            "Utah",      0.62,       0L,
+         "Vermont",      0.74,       0L,
+        "Virginia",      0.71,       0L,
+      "Washington",      0.75,       0L,
+   "West Virginia",      0.57,       0L,
+       "Wisconsin",      0.76,       0L,
+         "Wyoming",      0.65,       0L
+  )
+
+turnout2020 <- elec2020 %>% 
+  transmute(Year = 2020, 
+            STATE = name, 
+            Turnout = turnount*100)
+
+turnout2020 <- turnout %>% 
+  bind_rows(turnout2020)%>% 
+  group_by(STATE) %>% 
+  mutate(mean_turnout = mean(Turnout, na.rm = T), 
+         dif_mean = Turnout - mean_turnout) %>% 
+  filter(Year == 2020) %>%
+  rename(name = STATE) %>% 
+  mutate(name = case_when(name == 'District of Columbia' ~ "DC", TRUE ~ name)) %>% 
+  left_join(elec2020) %>% 
+  # mutate(code = ifelse(is.na(name), "DC", name)) %>% 
+  arrange(desc(dif_mean)) %>% 
+  mutate(competitivo = case_when(
+    compete == 1 ~ "FiveThirtyEight < 5 PUNTOS", TRUE ~ "FiveThirtyEight > 5 PUNTOS" 
+  )) %>% 
+  print()
+
+
+
+
+ggplot(turnout2020) +
+  facet_wrap(~competitivo) +
+  geom_col(aes(mean_turnout, 
+               fct_reorder(as.factor(name), mean_turnout)), 
+           fill = "blue", color = "transparent",
+           alpha = .2) +
+  geom_point(aes(Turnout, 
+                 fct_reorder(as.factor(name), mean_turnout)), 
+             color = "red") +
+  geom_vline(xintercept = 66.5) +
+  ggthemes::theme_fivethirtyeight()  +
+  labs(title = "Participación Electoral por Estado", 
+       subtitle = "<span style='color:blue'>Promedio (1980 - 2020)</span> - 
+       <span style='color:red'> 2020</span>", 
+       caption = "**@TuQmano con datos de *United States Electoral Project* y _FiveThirtyEight_**.
+       \n(**NOTAS**: La línea vertical marca el promedio 2020 a nivel nacional
+       y los paneles dividen nivel de competitividad antes de la elección).") +
+  theme(plot.subtitle = element_markdown(), 
+        plot.caption = element_markdown())
+
+
+
+
+
+lbattlegrounds <- tibble::tribble(
+               ~Estado, ~Diferencia,
+             "Georgia",         "-",
+         "Pensilvania",       "0.2",
+           "Wisconsin",       "0.4",
+             "Arizona",       "1.3",
+  "Carolina del Norte",       "1.4",
+              "Nevada",       "1.6",
+            "Michigan",       "2.6",
+             "Florida",       "3.4",
+               "Texas",       "5.6",
+            "Minesota",       "6.7"
+  )
 
 
 
